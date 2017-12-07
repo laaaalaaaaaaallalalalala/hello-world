@@ -1,0 +1,17 @@
+diff a/src/NorthernLights.CRM/Controllers/AccountsController.cs b/src/NorthernLights.CRM/Controllers/AccountsController.cs	(rejected hunks)
+@@ -13,7 +13,6 @@
+ 
+         public ActionResult Create()
+         {
+-            ViewBag.Industry = new SelectList(_service.GetIndustryOptions(), "Name", "Description");
+             return View();
+         }
+ 
+@@ -25,7 +24,6 @@
+             }
+ 
+             ViewBag.Id = id.Value;
+-            ViewBag.Industry = new SelectList(_service.GetIndustryOptions(), "Name", "Description");
+             return View();
+         }
+ 
