@@ -1,0 +1,101 @@
+﻿@{
+    ViewBag.Title = "Employees";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<a class="btn btn-default" href="/Employees/Create" role="button">
+    <span class="glyphicon glyphicon-plus"></span> Add
+</a>
+
+<table id="tableEmployees" class="table table-striped" width="100%">
+    <thead></thead>
+    <tfoot class="filter">
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody></tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            getEmployees();
+        })
+
+        function getEmployees() {
+            $.get('/api/Rest/GetEmployees', null, function (data) {
+                var table = $('#tableEmployees').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/Employees/Edit/' + row.Id + '">' + row.Contact.Name + '</a>';
+                        }
+                    },
+                    {
+                        "title": "Title",
+                        "data": "Contact.Title",
+                    },
+                    {
+                        "title": "Division",
+                        "data": "Division",
+                    },
+                    {
+                        "title": "Start Date",
+                        "data": "BeginDate",
+                        "render": function (data, type, row) {
+                            return $.format.date(data, "MM/dd/yyyy");
+                        }
+                    },
+                    {
+                        "title": "End Date",
+                        "data": "EndDate",
+                        "render": function (data, type, row) {
+                            return $.format.date(data, "MM/dd/yyyy");
+                        }
+                    },
+                    {
+                        "defaultContent": '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                        "orderable": false
+                    }],
+                });
+
+                $('#tableEmployees tfoot th').each(function () {
+                    var title = $('#tableEmployees thead th').eq($(this).index()).text();
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                    }
+                });
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw();
+                    });
+                });
+            });
+        }
+
+        $('#tableEmployees').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableEmployees').DataTable();
+
+                $.post('/api/Rest/DeleteEmployee/' + table.row($(this).parents('tr')).data().Id, null, function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    getEmployees();
+                });
+            }
+        })
+    </script>
+}

@@ -1,0 +1,50 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists
+   will truncate terms that are too long to fit in the left column
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 560px;
+}
+
+a.add, a.del, a.edit {
+    color: #a94442;
+}
+
+.form-horizontal .has-feedback .form-control-feedback {
+    right: 30px;
+}
+
+tfoot.filter {
+    display: table-header-group;
+}
+
+td.details-control {
+    background: url('../Images/glyphicons-602-chevron-down.png') no-repeat center center;
+    cursor: pointer;
+}
+
+tr.shown td.details-control {
+    background: url('../Images/glyphicons-601-chevron-up.png') no-repeat center center;
+}
+
+.file-preview-image {
+    max-height: 256px;
+    max-width: 256px;
+}

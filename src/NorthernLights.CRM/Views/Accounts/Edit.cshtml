@@ -1,0 +1,232 @@
+﻿@{
+    ViewBag.Title = "Account";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabContacts">Contacts</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabProjects">Projects</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formAccount" class="form-horizontal">
+            @Html.Hidden("Id", (int)ViewBag.Id)
+            <div class="form-group">
+                @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextBox("Name", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Code", "Code", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextBox("Code", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Description", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("LogoUploader", "Logo", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    <input id="LogoUploader" name="LogoUploader" type="file" class="file-loading">
+                    <div id="LogoErrors"></div>
+                </div>
+                @Html.Hidden("Logo")
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabContacts" class="tab-pane fade" role="tabpanel">
+        <table id="tableContacts" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div id="tabProjects" class="tab-pane fade" role="tabpanel">
+        <table id="tableProjects" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.ajax('/api/Rest/GetAccount/' + $('#formAccount #Id').val()).done(function (data) {
+                $('#formAccount #Name').val(data.Name)
+                $('#formAccount #Code').val(data.Code)
+                $('#formAccount #Description').val(data.Description)
+                $('#formAccount #Logo').val(data.Logo)
+
+                if (data.Logo !== null) {
+                    $("#formAccount #LogoUploader").fileinput({
+                        showClose: false,
+                        showCaption: false,
+                        elErrorContainer: '#formAccount #LogoErrors',
+                        defaultPreviewContent: '<img src="/Images/no-image.png" alt="Please choose logo." class="file-preview-image">',
+                        layoutTemplates: { main2: '{preview} {remove} {browse}' },
+                        allowedFileExtensions: ["jpg", "png", "gif"],
+                        uploadUrl: '/Accounts/UploadLogo',
+                        initialPreview: ['<img src="' + data.Logo + '" class="file-preview-image">']
+                    })
+                }
+                else {
+                    $("#formAccount #LogoUploader").fileinput({
+                        showClose: false,
+                        showCaption: false,
+                        elErrorContainer: '#formAccount #LogoErrors',
+                        defaultPreviewContent: '<img src="/Images/no-image.png" alt="Please choose logo." style="height: 64px">',
+                        layoutTemplates: { main2: '{preview} {remove} {browse}' },
+                        allowedFileExtensions: ["jpg", "png", "gif"],
+                        uploadUrl: '/Accounts/UploadLogo',
+                    })
+                }
+            })
+
+            $('#formAccount').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    Name: { validators: { notEmpty: { message: 'Please provide name.' } } },
+                    Code: { validators: {} },
+                    Description: { validators: {} },
+                    Logo: { validators: {} },
+                }
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+                $.ajax({ url: '/api/Rest/UpdateAccount', type: 'PUT', data: $('#formAccount').serialize() }).done(function (data) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                })
+            })
+        })
+
+        $('#formAccount #LogoUploader').on('fileuploaded', function (event, data, previewId, index) {
+            $('#formAccount #Logo').val(data.response.path)
+        }).on('fileclear', function (event) {
+            $('#formAccount #Logo').val('')
+        })
+
+        $('a[href="#tabContacts"]').on('shown.bs.tab', function (e) {
+            $.ajax('/Accounts/GetContacts/' + $('#formAccount #Id').val()).done(function (data) {
+                var table = $('#tableContacts').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/Contacts/Edit/' + row.Id + '">' + row.Name + '</a>'
+                        }
+                    },
+                    {
+                        "title": "Title",
+                        "data": "Title",
+                    },
+                    {
+                        "title": "Email",
+                        "data": "Email",
+                    },
+                    {
+                        "title": "Mobile",
+                        "data": "Mobile",
+                    }]
+                })
+
+                $('#tableContacts tfoot th').each(function () {
+                    var title = $('#tableContacts thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        })
+
+        $('a[href="#tabProjects"]').on('shown.bs.tab', function (e) {
+            $.get('/Accounts/GetProjects/' + $('#Id').val(), function (data) {
+                var table = $('#tableProjects').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/Projects/Edit/' + row.Id + '">' + row.Name + '</a>'
+                        }
+                    },
+                    {
+                        "title": "Type",
+                        "data": "Type",
+                    },
+                    {
+                        "title": "Status",
+                        "data": "Status",
+                    }]
+                })
+
+                $('#tableProjects tfoot th').each(function () {
+                    var title = $('#tableProjects thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        })
+    </script>
+}

@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "Project";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr />
+
+<form id="formProjectDetails" class="form-horizontal">
+    <div class="form-group">
+        @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4">
+            @Html.TextBox("Name", "", new { @class = "form-control" })
+        </div>
+        @Html.Label("Type", "Type", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4">
+            @Html.DropDownList("Type", null, "- Select -", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("BeginDate", "Start Date", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4" style="z-index: 1030;">
+            <div class="input-group date">
+                @Html.TextBox("BeginDate", "", new { @class = "form-control" })
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+        </div>
+        @Html.Label("AccountId", "Account", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4">
+            @Html.DropDownList("AccountId", new List<SelectListItem>(), new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("EndDate", "End Date", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4" style="z-index: 1030;">
+            <div class="input-group date">
+                @Html.TextBox("EndDate", "", new { @class = "form-control" })
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+        </div>
+        @Html.Label("Industry", "Industry", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4">
+            @Html.DropDownList("Industry", null, "- Select -", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Status", "Status", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4">
+            @Html.DropDownList("Status", null, "- Select -", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextArea("Description", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.get('/api/Rest/GetAccounts', function (data) {
+                data.splice(0, 0, { Id: "", Name: "" });
+                $("#AccountId").select2({
+                    placeholder: "- Select -",
+                    allowClear: true,
+                    data: $.map(data, function (item, index) {
+                        item.id = item.Id;
+                        item.text = item.Name;
+                        return item;
+                    }),
+                    templateResult: function (item) {
+                        return '<div>' + '<img src="' + (item.Logo !== null ? item.Logo : '/Images/no-image.png') + '" height="64px" width="64px"/>&nbsp;' + item.Name + '</div>';
+                    },
+                    escapeMarkup: function (markup) { return markup; },
+                });
+            });
+
+            $('#formProjectDetails').bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    Name: {
+                        message: 'Name is invalid.',
+                        validators: {
+                            notEmpty: { message: 'Required' }
+                        }
+                    }
+                }
+            });
+        });        
+
+        $('#formProjectDetails').on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            $.post('/api/Rest/AddProject', {
+                "Name": $('#Name').val(),
+                "Type": $('#Type').val(),
+                "BeginDate": $('#BeginDate').val(),
+                "AccountId": $('#AccountId').val(),
+                "EndDate": $('#EndDate').val(),
+                "Status": $('#Status').val(),
+                "Industry": $('#Industry').val(),
+                "Description": $('#Description').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                window.location = '/Projects/Edit/' + data.Id;
+            });
+        })
+    </script>
+}

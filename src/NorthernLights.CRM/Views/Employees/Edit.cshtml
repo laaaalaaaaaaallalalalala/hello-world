@@ -1,0 +1,410 @@
+﻿@{
+    ViewBag.Title = "Employee";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@Html.Hidden("Id", (int)ViewBag.Id)
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabEducation">Education</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabExperience">Experience</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formEmployee" class="form-horizontal">
+            <div class="form-group">
+                @Html.Label("ContactId", "Contact", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextBox("ContactId", "", new { @class = "form-control", disabled = "disabled" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Division", "Division", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownList("Division", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("BeginDate", "Start Date", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("BeginDate", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("EndDate", "End Date", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("EndDate", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("TechnicalSkills", "Skills", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownList("TechnicalSkills", null, new { @class = "form-control", multiple = "true" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Comment", "Comment", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Comment", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabEducation" class="tab-pane fade" role="tabpanel">
+        <div>
+            <button type="button" class="btn btn-default" id="buttonAddEducation">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+            </button>
+        </div>
+        <table id="tableEducations" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+        @Html.Partial("_EducationModal")
+    </div>
+    <div id="tabExperience" class="tab-pane fade" role="tabpanel">
+        <div>
+            <button type="button" class="btn btn-default" id="buttonAddExperience">
+            <span class="glyphicon glyphicon-plus"></span> Add
+            </button>
+        </div>
+        <table id="tableExperiences" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+        @Html.Partial("_ExperienceModal")
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $('#TechnicalSkills').select2({ closeOnSelect: false })
+
+            $.get('/api/Rest/GetEmployee/' + $('#Id').val(), function (data) {
+                $('#ContactId').val(data.Contact.Name);
+                $('#Division').val(data.Division);
+                if (!(!data.BeginDate)) {
+                    $('#BeginDate').datepicker('setDate', new Date(data.BeginDate));
+                }
+                if (!(!data.EndDate)) {
+                    $('#EndDate').datepicker('setDate', new Date(data.EndDate));
+                }
+                $('#TechnicalSkills').val(data.TechnicalSkills).trigger('change'),
+                $('#Comment').val(data.Comment);
+
+                getEducations(JSON.parse(data.Education));
+                getExperiences(JSON.parse(data.Experience));
+            });
+        })
+
+        $('#formEmployee').on('submit', function (e) {
+            e.preventDefault();
+
+            $.post('/api/Rest/UpdateEmployee', {
+                "Id": $('#Id').val(),
+                "Division": $('#Division').val(),
+                "BeginDate": $('#BeginDate').val(),
+                "EndDate": $('#EndDate').val(),
+                "TechnicalSkills": $('#TechnicalSkills').val(),
+                "Comment": $('#Comment').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+            });
+        })
+
+        function getEducations(data) {
+            var table = $('#tableEducations').DataTable({
+                "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                "destroy": true,
+                "data": data,
+                "order": [[1, 'desc']],
+                "rowId": "Id",
+                "columns": [
+                {
+                    "title": "School",
+                    "data": "School",
+                },
+                {
+                    "title": "Start Date",
+                    "data": "BeginDate",
+                    "render": function (data, type, row) {
+                        return $.format.date(data, "MM/dd/yyyy");
+                    }
+                },
+                {
+                    "title": "End Date",
+                    "data": "EndDate",
+                    "render": function (data, type, row) {
+                        return $.format.date(data, "MM/dd/yyyy");
+                    }
+                },
+                {
+                    "title": "Degree",
+                    "data": "Degree",
+                },
+                {
+                    "title": "Major",
+                    "data": "Major",
+                },
+                {
+                    "defaultContent": '<a class="edit" href="#"><span class="glyphicon glyphicon-pencil"></span></a>&nbsp;' +
+                                      '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                    "orderable": false,
+                    "className": 'text-nowrap',
+                }],
+            });
+
+            $('#tableEducations tfoot th').each(function () {
+                var title = $('#tableEducations thead th').eq($(this).index()).text();
+                if (title.length > 0) {
+                    $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                }
+            });
+
+            table.columns().eq(0).each(function (colIdx) {
+                $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                    table.column(colIdx).search(this.value).draw();
+                });
+            });
+        }
+
+        $('#tableEducations').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableEducations').DataTable();
+
+                $.post('/Employees/DeleteEducation/' + table.row($(this).parents('tr')).data().Id + '?employeeId=' + $('#Id').val(), null, function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    $.get('/api/Rest/GetEmployee/' + $('#Id').val(), function (data) {
+                        getEducations(JSON.parse(data.Education));
+                    });
+                });
+            }
+        }).on('click', 'a.edit', function () {
+            var table = $('#tableEducations').DataTable();
+            var tr = $(this).closest('tr');
+            if (tr.attr('id') !== undefined) {
+                var row = table.row(tr);
+                $('#formEducation #EducationId').val(row.data().Id);
+                $('#modalEducation').modal();
+            }
+        })
+
+        $('#buttonAddEducation').on('click', function (e) {
+            e.preventDefault();
+
+            $('#formEducation #EducationId').val("");
+            $('#modalEducation').modal();
+        })
+
+        $('#modalEducation').on('shown.bs.modal', function (e) {
+            if ($('#formEducation #EducationId').val().length > 0) {
+                $.get('/Employees/GetEducation/' + $('#formEducation #EducationId').val() + '?employeeId=' + $('#Id').val(), null, function (data) {
+                    $('#formEducation #School').val(data.School);
+                    if (data.BeginDate !== null) {
+                        $('#formEducation #BeginDate').datepicker('setDate', new Date(parseInt(data.BeginDate.substr(6))));
+                    }
+                    if (data.EndDate !== null) {
+                        $('#formEducation #EndDate').datepicker('setDate', new Date(parseInt(data.EndDate.substr(6))));
+                    }
+                    $('#formEducation #Degree').val(data.Degree);
+                    $('#formEducation #Major').val(data.Major);
+                    $('#formEducation #Certifications').val(data.Certifications);
+                });
+            }
+            else {
+                $('#formEducation #School').val("");
+                $('#formEducation #BeginDate').val("");
+                $('#formEducation #EndDate').val("");
+                $('#formEducation #Degree').val("");
+                $('#formEducation #Major').val("");
+                $('#formEducation #Certifications').val("");
+            }
+        })
+
+        $('#formEducation').on('submit', function (e) {
+            e.preventDefault();
+
+            $.post('/Employees/AddOrUpdateEducation', {
+                "EmployeeId": $('#Id').val(),
+                "Id": $('#formEducation #EducationId').val(),
+                "School": $('#formEducation #School').val(),
+                "BeginDate": $('#formEducation #BeginDate').val(),
+                "EndDate": $('#formEducation #EndDate').val(),
+                "Degree": $('#formEducation #Degree').val(),
+                "Major": $('#formEducation #Major').val(),
+                "Certifications": $('#formEducation #Certifications').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                $.get('/api/Rest/GetEmployee/' + $('#Id').val(), function (data) {
+                    getEducations(JSON.parse(data.Education));
+                });
+                $('#modalEducation').modal('hide');
+            });
+        })
+
+        function getExperiences(data) {
+            var table = $('#tableExperiences').DataTable({
+                "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                "destroy": true,
+                "data": data,
+                "order": [[2, 'desc']],
+                "rowId": "Id",
+                "columns": [
+                {
+                    "title": "Company",
+                    "data": "Company",
+                },
+                {
+                    "title": "Title",
+                    "data": "Title",
+                },
+                {
+                    "title": "Start Date",
+                    "data": "BeginDate",
+                    "render": function (data, type, row) {
+                        return $.format.date(data, "MM/dd/yyyy");
+                    }
+                },
+                {
+                    "title": "End Date",
+                    "data": "EndDate",
+                    "render": function (data, type, row) {
+                        return $.format.date(data, "MM/dd/yyyy");
+                    }
+                },
+                {
+                    "defaultContent": '<a class="edit" href="#"><span class="glyphicon glyphicon-pencil"></span></a>&nbsp;' +
+                                      '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                    "orderable": false,
+                    "className": 'text-nowrap',
+                }],
+            });
+
+            $('#tableExperiences tfoot th').each(function () {
+                var title = $('#tableExperiences thead th').eq($(this).index()).text();
+                if (title.length > 0) {
+                    $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                }
+            });
+
+            table.columns().eq(0).each(function (colIdx) {
+                $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                    table.column(colIdx).search(this.value).draw();
+                });
+            });
+        }
+
+        $('#tableExperiences').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableExperiences').DataTable();
+
+                $.post('/Employees/DeleteExperience/' + table.row($(this).parents('tr')).data().Id + '?employeeId=' + $('#Id').val(), null, function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    $.get('/api/Rest/GetEmployee/' + $('#Id').val(), function (data) {
+                        getExperiences(JSON.parse(data.Experience));
+                    });
+                });
+            }
+        }).on('click', 'a.edit', function () {
+            var table = $('#tableExperiences').DataTable();
+            var tr = $(this).closest('tr');
+            if (tr.attr('id') !== undefined) {
+                var row = table.row(tr);
+                $('#formExperience #ExperienceId').val(row.data().Id);
+                $('#modalExperience').modal();
+            }
+        })
+
+        $('#buttonAddExperience').on('click', function (e) {
+            e.preventDefault();
+
+            $('#formExperience #ExperienceId').val("");
+            $('#modalExperience').modal();
+        })
+
+        $('#modalExperience').on('shown.bs.modal', function (e) {
+            if ($('#formExperience #ExperienceId').val().length > 0) {
+                $.get('/Employees/GetExperience/' + $('#formExperience #ExperienceId').val() + '?employeeId=' + $('#Id').val(), null, function (data) {
+                    $('#formExperience #Company').val(data.Company);
+                    $('#formExperience #Title').val(data.Title);
+                    if (data.BeginDate !== null) {
+                        $('#formExperience #BeginDate').datepicker('setDate', new Date(parseInt(data.BeginDate.substr(6))));
+                    }
+                    if (data.EndDate !== null) {
+                        $('#formExperience #EndDate').datepicker('setDate', new Date(parseInt(data.EndDate.substr(6))));
+                    }
+                    $('#formExperience #Projects').val(data.Projects);
+                });
+            }
+            else {
+                $('#formExperience #Company').val("");
+                $('#formExperience #Title').val("");
+                $('#formExperience #BeginDate').val("");
+                $('#formExperience #EndDate').val("");
+                $('#formExperience #Projects').val("");
+            }
+        })
+
+        $('#formExperience').on('submit', function (e) {
+            e.preventDefault();
+
+            $.post('/Employees/AddOrUpdateExperience', {
+                "EmployeeId": $('#Id').val(),
+                "Id": $('#formExperience #ExperienceId').val(),
+                "Company": $('#formExperience #Company').val(),
+                "Title": $('#formExperience #Title').val(),
+                "BeginDate": $('#formExperience #BeginDate').val(),
+                "EndDate": $('#formExperience #EndDate').val(),
+                "Projects": $('#formExperience #Projects').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                $.get('/api/Rest/GetEmployee/' + $('#Id').val(), function (data) {
+                    getExperiences(JSON.parse(data.Experience));
+                });
+                $('#modalExperience').modal('hide');
+            });
+        })
+    </script>
+}

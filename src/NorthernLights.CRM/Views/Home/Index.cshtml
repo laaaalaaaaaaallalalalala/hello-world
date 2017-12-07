@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1>Welcome to Northern Lights CRM!</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h2>My Tasks</h2>
+        <div id="divTasks"></div>
+    </div>
+    <div class="col-md-6">
+        <h2>Recent Activities</h2>
+        <div id="divActivities"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.ajax('/Home/GetMyTasks').done(function (data) {
+                $.each(data, function (index, element) {
+                    var html = '<p><span class="glyphicon glyphicon-hand-right"></span> '
+                    html += '<a href="/ToDoes/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    html += ' is due on ' + $.format.date(new Date(parseInt(element.DueDate.substr(6))), "MM/dd/yyyy") + '.</p>'
+                    $('#divTasks').append(html)
+                })
+            })
+
+            $.ajax('/Home/GetActivities').done(function (data) {
+                $.each(data, function (index, element) {
+                    var html = '<p><span class="glyphicon glyphicon-hand-right"></span> The '
+                    if (element.Type === 'Account') {
+                        html += 'account <a href="/Accounts/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    }
+                    else if (element.Type === 'Contact') {
+                        html += 'contact <a href="/Contacts/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    }
+                    else if (element.Type === 'Project') {
+                        html += 'project <a href="/Projects/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    }
+                    else if (element.Type === 'Employee') {
+                        html += 'employee <a href="/Employees/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    }
+                    else if (element.Type === 'CostConfiguration') {
+                        html += 'cost <a href="/Costs/Edit/' + element.Id + '">' + element.Name + '</a>'
+                    }
+                    html += ' was updated on ' + $.format.date(new Date(parseInt(element.DateUpdated.substr(6))), "MM/dd/yyyy h:mm:ss a") + '.</p>'
+                    $('#divActivities').append(html)
+                })
+            })
+        })
+    </script>
+}

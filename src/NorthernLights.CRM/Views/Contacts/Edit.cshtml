@@ -1,0 +1,234 @@
+﻿@{
+    ViewBag.Title = "Contact";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@Html.Hidden("Id", (int)ViewBag.Id)
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabProjects">Projects</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formContact" class="form-horizontal">
+            <div class="form-group">
+                @Html.Label("FirstName", "First Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("FirstName", "", new { @class = "form-control" })
+                </div>
+                @Html.Label("Title", "Title", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("Title", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("LastName", "Last Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("LastName", "", new { @class = "form-control" })
+                </div>
+                @Html.Label("AccountId", "Account", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.DropDownList("AccountId", new List<SelectListItem>(), new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Alias", "Alias", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("Alias", "", new { @class = "form-control" })
+                </div>
+                @Html.Label("Birthday", "Birthday", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("Birthday", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Email", "Email", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("Email", "", new { @class = "form-control", @type = "email" })
+                </div>
+                @Html.Label("Mobile", "Mobile", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("Mobile", "", new { @class = "form-control", @type = "tel" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Gender", "Gender", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @foreach (var pair in ViewBag.Gender)
+                    {
+                        <div class="radio">
+                            <label>
+                                @Html.RadioButton("Gender", (string)pair.Name)
+                                @pair.Description
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabProjects" class="tab-pane fade" role="tabpanel">
+        <table id="tableProjects" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.get('/api/Rest/GetContact/' + $('#Id').val(), function (data) {
+                $('#FirstName').val(data.FirstName);
+                $('#Title').val(data.Title);
+                $('#LastName').val(data.LastName);
+                $('#Alias').val(data.Alias);
+                $('#Email').val(data.Email);
+                if (!(!data.Birthday)) {
+                    $('#Birthday').datepicker('setDate', new Date(data.Birthday));
+                }
+                $('#Mobile').val(data.Mobile);
+                $('#Gender[value="' + data.Gender + '"]').attr('checked', true);
+
+                $.get('/api/Rest/GetAccounts', function (accounts) {
+                    accounts.splice(0, 0, { Id: "", Name: "" });
+                    var select2 = $("#AccountId").select2({
+                        placeholder: "- Select -",
+                        allowClear: true,
+                        data: $.map(accounts, function (item, index) {
+                            item.id = item.Id;
+                            item.text = item.Name;
+                            return item;
+                        }),
+                        templateResult: function (item) {
+                            return '<div>' + '<img src="' + (item.Logo !== null ? item.Logo : '/Images/no-image.png') + '" height="64px" width="64px"/>&nbsp;' + item.Name + '</div>';
+                        },
+                        escapeMarkup: function (markup) { return markup; },
+                    });
+                    if (data.AccountId !== null) {
+                        select2.val(data.AccountId).trigger('change');
+                    }
+                });
+            });
+
+            $.get('/Contacts/GetProjects/' + $('#Id').val(), function (data) {
+                var table = $('#tableProjects').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/Projects/Edit/' + row.Id + '">' + row.Name + '</a>';
+                        }
+                    },
+                    {
+                        "title": "Type",
+                        "data": "Type",
+                    },
+                    {
+                        "title": "Status",
+                        "data": "Status",
+                    },
+                    {
+                        "title": "Industry",
+                        "data": "Industry",
+                    }]
+                });
+
+                $('#tableProjects tfoot th').each(function () {
+                    var title = $('#tableProjects thead th').eq($(this).index()).text();
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                    }
+                });
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw();
+                    });
+                });
+            });
+        })
+
+        $('#formContact').bootstrapValidator({
+            message: 'This value is not valid',
+            feedbackIcons: {
+                valid: 'glyphicon glyphicon-ok',
+                invalid: 'glyphicon glyphicon-remove',
+                validating: 'glyphicon glyphicon-refresh'
+            },
+            fields: {
+                FirstName: {
+                    message: 'First Name is invalid.',
+                    validators: {
+                        notEmpty: { message: 'Required' }
+                    }
+                },
+                LastName: {
+                    message: 'Last Name is invalid.',
+                    validators: {
+                        notEmpty: { message: 'Required' }
+                    }
+                },
+                Email: {
+                    message: 'Email is invalid.',
+                    validators: {
+                        notEmpty: { message: 'Required' }
+                    }
+                },
+                Gender: {
+                    message: 'Gender is invalid.',
+                    validators: {
+                        notEmpty: { message: 'Required' }
+                    }
+                }
+            }
+        }).on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            $.post('/api/Rest/UpdateContact', {
+                "Id": $('#Id').val(),
+                "FirstName": $('#FirstName').val(),
+                "Title": $('#Title').val(),
+                "LastName": $('#LastName').val(),
+                "AccountId": $('#AccountId').val(),
+                "Alias": $('#Alias').val(),
+                "Email": $('#Email').val(),
+                "Birthday": $('#Birthday').val(),
+                "Mobile": $('#Mobile').val(),
+                "Gender": $('#Gender:checked').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+            });
+        })
+    </script>
+}

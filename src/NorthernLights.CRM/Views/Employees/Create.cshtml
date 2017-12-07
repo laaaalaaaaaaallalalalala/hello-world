@@ -1,0 +1,115 @@
+﻿@{
+    ViewBag.Title = "Employee";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr />
+
+<form id="formEmployee" class="form-horizontal">
+    <div class="form-group">
+        @Html.Label("ContactId", "Contact", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.DropDownList("ContactId", new List<SelectListItem>(), new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Division", "Division", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.DropDownList("Division", null, "- Select -", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("BeginDate", "Start Date", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4" style="z-index: 1030;">
+            <div class="input-group date">
+                @Html.TextBox("BeginDate", "", new { @class = "form-control" })
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("EndDate", "End Date", new { @class = "col-md-2 control-label" })
+        <div class="col-md-4" style="z-index: 1030;">
+            <div class="input-group date">
+                @Html.TextBox("EndDate", "", new { @class = "form-control" })
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("TechnicalSkills", "Skills", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.DropDownList("TechnicalSkills", null, new { @class = "form-control", multiple = "true" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Comment", "Comment", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextArea("Comment", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $('#TechnicalSkills').select2({
+                closeOnSelect: false,
+            });
+
+            $.get('/Employees/GetContactsForCreatingEmployee', function (data) {
+                data.splice(0, 0, { Id: "", Name: "" });
+                $("#ContactId").select2({
+                    placeholder: "- Select -",
+                    data: $.map(data, function (item, index) {
+                        item.id = item.Id;
+                        item.text = item.Name;
+                        return item;
+                    }),
+                    templateResult: function (contact) {
+                        return "<div>" + contact.Name + "</div>"
+                            + "<div>" + contact.Email + "</div>"
+                            + (!contact.Title ? "" : "<div>" + contact.Title + "</div>")
+                            + (!contact.Account ? "" : "<div>" + contact.Account.Name + "</div>");
+                    },
+                    escapeMarkup: function (markup) { return markup; },
+                });
+            });
+        })
+
+        $('#formEmployee').bootstrapValidator({
+            feedbackIcons: {
+                valid: 'glyphicon glyphicon-ok',
+                invalid: 'glyphicon glyphicon-remove',
+                validating: 'glyphicon glyphicon-refresh'
+            },
+            fields: {
+                ContactId: {
+                    validators: {
+                        notEmpty: { message: 'Contact is required.' }
+                    }
+                }
+            }
+        }).on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            $.post('/api/Rest/AddEmployee', {
+                "ContactId": $('#ContactId').val(),
+                "Division": $('#Division').val(),
+                "BeginDate": $('#BeginDate').val(),
+                "EndDate": $('#EndDate').val(),
+                "TechnicalSkills": $('#TechnicalSkills').val(),
+                "Comment": $('#Comment').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                window.location = '/Employees/Edit/' + data.Id;
+            });
+        })
+    </script>
+}

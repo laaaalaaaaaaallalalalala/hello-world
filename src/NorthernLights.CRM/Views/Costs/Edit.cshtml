@@ -1,0 +1,551 @@
+﻿@{
+    ViewBag.Title = "Cost";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@Html.Hidden("Id", (int)ViewBag.Id)
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabLabors">Labors</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabReport" id="aReport">Report</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formCostConfiguration" class="form-horizontal">
+            <div class="form-group">
+                @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextBox("Name", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        @Html.Label("Year", "Year", new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBox("Year", "", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("Month", "Month", new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.DropDownList("Month", new SelectList(new List<KeyValuePair<int, string>>()
+                            {
+                                new KeyValuePair<int, string>(1, "January"),
+                                new KeyValuePair<int, string>(2, "February"),
+                                new KeyValuePair<int, string>(3, "March"),
+                                new KeyValuePair<int, string>(4, "April"),
+                                new KeyValuePair<int, string>(5, "May"),
+                                new KeyValuePair<int, string>(6, "June"),
+                                new KeyValuePair<int, string>(7, "July"),
+                                new KeyValuePair<int, string>(8, "August"),
+                                new KeyValuePair<int, string>(9, "September"),
+                                new KeyValuePair<int, string>(10, "October"),
+                                new KeyValuePair<int, string>(11, "November"),
+                                new KeyValuePair<int, string>(12, "December"),
+                            }, "Key", "Value"), "- Select -", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("PlannedHours", "Planned Hours", new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBox("PlannedHours", "", new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    @Html.Label("Rates", "Rates", new { @class = "col-md-4 control-label" })
+                    <div class="col-md-8" id="Rates">
+                        @foreach (var option in ViewBag.ResourceTypes)
+                        {
+                            <div class="form-group">
+                                @Html.Label((string)option.Name, (string)option.Description, new { @class = "col-md-6 control-label" })
+                                <div class="col-md-6">
+                                    @Html.TextBox((string)option.Name, "", new { @class = "form-control" })
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Description", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabLabors" class="tab-pane fade" role="tabpanel">
+        <div>
+            <button type="button" class="btn btn-default" id="buttonAddLabor">
+                <span class="glyphicon glyphicon-plus"></span> Add
+            </button>
+            @Html.Partial("_LaborModal")
+        </div>
+        <table id="tableLabors" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div id="tabReport" class="tab-pane fade" role="tabpanel">
+        <table id="tableReport" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.get('/api/Rest/GetCostConfiguration/' + $('#Id').val(), function (data) {
+                $('#Name').val(data.Name);
+                $('#Year').val(data.Year);
+                $('#Month').val(data.Month);
+                $('#PlannedHours').val(data.PlannedHours);
+                $('#Description').val(data.Description);
+
+                $.each(JSON.parse(data.Rates), function (index, element) {
+                    $('#' + element.id).val(element.value);
+                });
+            });
+
+            getCosts();
+
+            $.get('/api/Rest/GetEmployees', function (data) {
+                data.splice(0, 0, { Id: "", Contact: { Name: "", Email: "" }, });
+
+                $("#EmployeeId").select2({
+                    placeholder: "- Select -",
+                    width: '100%',
+                    data: $.map(data, function (element, index) {
+                        element.id = element.Id;
+                        element.text = element.Contact.Name;
+                        element.templateResult = "<div>" + element.Contact.Name + "</div><div>" + element.Contact.Email + "</div>";
+                        return element;
+                    }),
+                    templateResult: function (element) { return element.templateResult; },
+                    escapeMarkup: function (markup) { return markup; },
+                });
+
+                $("#ProjectId").select2({
+                    width: '100%',
+                    placeholder: '- Select -',
+                });
+            });
+
+            $('#formCostConfiguration').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    Name: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Name.' },
+                        }
+                    },
+                    Year: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Year.' },
+                            between: { min: 2015, max: 2020, message: 'Please enter a valid year.' },
+                        }
+                    },
+                    Month: {
+                        validators: {
+                            notEmpty: { message: 'Please choose Month.' },
+                        }
+                    },
+                    PlannedHours: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Planned Hours.' },
+                            integer: { message: 'Please enter a valid number.' },
+                        }
+                    },
+                    Description: {
+                        validators: {
+                        }
+                    },
+                }
+            });
+
+            $('#formLabor').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    EmployeeId: {
+                        validators: {
+                            notEmpty: { message: 'Please choose Employee.' },
+                        }
+                    },
+                    ProjectId: {
+                        validators: {
+                            notEmpty: { message: 'Please choose Project.' },
+                        }
+                    },
+                    Alias: {
+                        validators: {
+                        }
+                    },
+                    ResourceType: {
+                        validators: {
+                            notEmpty: { message: 'Please choose Type.' },
+                        }
+                    },
+                    ActualHours: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Actual Hours.' },
+                            numeric: { message: 'Please enter a number.' },
+                        }
+                    },
+                    ActualCost: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Actual Cost.' },
+                            numeric: { message: 'Please enter a number.' },
+                        }
+                    },
+                    Comment: {
+                        validators: {
+                        }
+                    },
+                }
+            });
+        })
+
+        function getCosts() {
+            $.get('/Costs/GetCosts?costConfigurationId=' + $('#Id').val(), function (data) {
+                var table = $('#tableLabors').DataTable({
+                    "destroy": true,
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "data": data,
+                    "rowId": 'Id',
+                    "order": [[0, 'asc']],
+                    "columns": [
+                    {
+                        "title": "Employee",
+                        "render": function (data, type, row) {
+                            if (row.Employee !== null && row.Employee.Contact !== null) {
+                                return '<a href="/Employees/Edit/' + row.EmployeeId + '">' + row.Employee.Contact.Name + '</a>';
+                            }
+
+                            return '';
+                        }
+                    },
+                    {
+                        "title": "Project",
+                        "render": function (data, type, row) {
+                            if (row.Project !== null) {
+                                return '<a href="/Projects/Edit/' + row.ProjectId + '">' + row.Project.Name + '</a>';
+                            }
+
+                            return '';
+                        }
+                    },
+                    {
+                        "title": "Account",
+                        "render": function (data, type, row) {
+                            if (row.Project !== null && row.Project.Account !== null) {
+                                return '<a href="/Accounts/Edit/' + row.Project.AccountId + '">' + row.Project.Account.Name + '</a>';
+                            }
+
+                            return '';
+                        }
+                    },
+                    {
+                        "title": "Type",
+                        "data": "ResourceType",
+                    },
+                    {
+                        "title": "Actual Cost",
+                        "data": "ActualCost",
+                        "render": function (data, type, row) {
+                            return '$' + data;
+                        }
+                    },
+                    {
+                        "defaultContent": '<a class="edit" href="#"><span class="glyphicon glyphicon-pencil"></span></a>&nbsp;' +
+                                          '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                        "className": 'text-nowrap',
+                        "orderable": false,
+                    }]
+                });
+
+                $('#tableLabors tfoot th').each(function () {
+                    var title = $('#tableLabors thead th').eq($(this).index()).text();
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                    }
+                });
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw();
+                    });
+                });
+            });
+        }
+
+        $('#tableLabors').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableLabors').DataTable();
+
+                $.post('/api/Rest/DeleteCost/' + table.row($(this).parents('tr')).data().Id, null, function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    getCosts();
+                });
+            }
+        }).on('click', 'a.edit', function () {
+            var table = $('#tableLabors').DataTable();
+            var tr = $(this).closest('tr');
+            if (tr.attr('id') !== undefined) {
+                var row = table.row(tr);
+                $('#formLabor #CostId').val(row.data().Id);
+                $('#modalLabor').modal();
+            }
+        })
+
+        $('#formCostConfiguration').on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            var rates = new Array();
+            $('#Rates input').each(function (index, element) {
+                rates.push({
+                    id: element.id,
+                    name: element.name,
+                    value: element.value,
+                });
+            });
+
+            $.post('/api/Rest/UpdateCostConfiguration', {
+                "Id": $('#Id').val(),
+                "Name": $('#Name').val(),
+                "Year": $('#Year').val(),
+                "Month": $('#Month').val(),
+                "PlannedHours": $('#PlannedHours').val(),
+                "Rates": JSON.stringify(rates),
+                "Description": $('#Description').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+            });
+        })
+
+        $('#buttonAddLabor').on('click', function (e) {
+            e.preventDefault();
+
+            $('#formLabor #CostId').val("");
+            $('#modalLabor').modal();
+        })
+
+        $('#modalLabor').on('shown.bs.modal', function (e) {
+            if ($('#formLabor #CostId').val().length > 0) {
+                $.get('/api/Rest/GetCost/' + $('#formLabor #CostId').val(), null, function (data) {
+                    $('#formLabor #EmployeeId').val(data.EmployeeId).trigger('change');
+                    getProjects(data.ProjectId);
+                    $('#formLabor #Alias').val(data.Alias);
+                    $('#formLabor #ResourceType').val(data.ResourceType);
+                    $('#formLabor #ActualHours').val(data.ActualHours);
+                    $('#formLabor #ActualCost').val(data.ActualCost);
+                    $('#formLabor #Comment').val(data.Comment);
+                });
+            } else {
+                $('#formLabor').data('bootstrapValidator').resetForm(true);
+                $('#formLabor #EmployeeId').val("").trigger('change');
+                $('#formLabor #ProjectId').val("").trigger('change');
+            }
+        })
+
+        $('#formLabor #EmployeeId').on('change', function (e) {
+            getProjects();
+        })
+
+        function getProjects(selectedProjectId) {
+            $.get('/Costs/GetProjects?employeeId=' + $('#formLabor #EmployeeId').val(), function (data) {
+                data.splice(0, 0, { Id: "", Name: "", });
+                $("#formLabor #ProjectId").select2({
+                    width: '100%',
+                    placeholder: '- Select -',
+                    data: $.map(data, function (element, index) {
+                        element.id = element.Id;
+                        element.text = element.Name;
+                        element.templateResult = "<div>" + element.Name + "</div>"
+                            + (!element.Account ? "" : "<div>" + element.Account.Name + "</div>");
+                        return element;
+                    }),
+                    templateResult: function (element) { return element.templateResult; },
+                    escapeMarkup: function (markup) { return markup; },
+                });
+                if (!(!selectedProjectId)) {
+                    $('#formLabor #ProjectId').val(selectedProjectId).trigger('change');
+                }
+            });
+        }
+
+        $('#formLabor #ResourceType').on('change', function (e) {
+            calculateActualCost();
+        })
+
+        $('#formLabor #ActualHours').on('change', function (e) {
+            calculateActualCost();
+        })
+
+        function calculateActualCost() {
+            $.get('/Costs/CalculateActualCost?costConfigurationId=' + $('#Id').val()
+                + '&type=' + $('#ResourceType').val()
+                + '&hours=' + $('#ActualHours').val(), null, function (data) {
+                    $('#formLabor #ActualCost').val(data);
+                });
+        }
+
+        $('#formLabor').on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            if ($('#formLabor #CostId').val().length > 0) {
+                $.post('/api/Rest/UpdateCost', {
+                    "Id": $('#formLabor #CostId').val(),
+                    "CostConfigurationId": $('#Id').val(),
+                    "EmployeeId": $('#formLabor #EmployeeId').val(),
+                    "ProjectId": $('#formLabor #ProjectId').val(),
+                    "Alias": $('#formLabor #Alias').val(),
+                    "ResourceType": $('#formLabor #ResourceType').val(),
+                    "ActualHours": $('#formLabor #ActualHours').val(),
+                    "ActualCost": $('#formLabor #ActualCost').val(),
+                    "Comment": $('#formLabor #Comment').val(),
+                }, function (data) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    $('#modalLabor').modal('hide');
+                    getCosts();
+                });
+            }
+            else {
+                $.post('/api/Rest/AddCost', {
+                    "CostConfigurationId": $('#Id').val(),
+                    "EmployeeId": $('#formLabor #EmployeeId').val(),
+                    "ProjectId": $('#formLabor #ProjectId').val(),
+                    "Alias": $('#formLabor #Alias').val(),
+                    "ResourceType": $('#formLabor #ResourceType').val(),
+                    "ActualHours": $('#formLabor #ActualHours').val(),
+                    "ActualCost": $('#formLabor #ActualCost').val(),
+                    "Comment": $('#formLabor #Comment').val(),
+                }, function (data) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                    $('#modalLabor').modal('hide');
+                    getCosts();
+                });
+            }
+        })
+
+        $('#aReport').on('shown.bs.tab', function (e) {
+            $.get('/Costs/GetReport?costConfigurationId=' + $('#Id').val(), function (data) {
+                var table = $('#tableReport').DataTable({
+                    "destroy": true,
+                    "dom": "<'row'<'col-md-6'B><'col-md-6'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "buttons": [
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Export as PDF',
+                        className: 'btn-primary'
+                    }],
+                    "data": data,
+                    "rowId": 'Id',
+                    "order": [[0, 'asc']],
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "data": "ContactName",
+                    },
+                    {
+                        "title": "NL BU Assigned",
+                        "data": "ProjectName",
+                    },
+                    {
+                        "title": "Co Code",
+                        "data": "AccountCode",
+                    },
+                    {
+                        "title": "Full HC",
+                        "data": "HeadCount",
+                        "render": function (data, type, row) {
+                            return $.number(data, 2);
+                        },
+                    },
+                    {
+                        "title": "Rate",
+                        "data": "Rate",
+                        "render": function (data, type, row) {
+                            return '$' + $.number(data, 2);
+                        },
+                    },
+                    {
+                        "title": "HRS",
+                        "data": "ActualHours",
+                        "render": function (data, type, row) {
+                            return $.number(data, 1);
+                        },
+                    },
+                    {
+                        "title": "Billed",
+                        "data": "ActualCost",
+                        "render": function (data, type, row) {
+                            return '$' + $.number(data, 2, '.', ',');
+                        },
+                    }]
+                });
+
+                $('#tableReport tfoot th').each(function () {
+                    var title = $('#tableReport thead th').eq($(this).index()).text();
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">');
+                    }
+                });
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw();
+                    });
+                });
+            });
+        })
+    </script>
+}

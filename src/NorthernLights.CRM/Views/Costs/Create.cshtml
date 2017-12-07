@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "Cost";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr />
+
+<form id="formCostConfiguration" class="form-horizontal">
+    <div class="form-group">
+        @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBox("Name", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-6">
+            <div class="form-group">
+                @Html.Label("Year", "Year", new { @class = "col-md-4 control-label" })
+                <div class="col-md-8">
+                    @Html.TextBox("Year", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Month", "Month", new { @class = "col-md-4 control-label" })
+                <div class="col-md-8">
+                    @Html.DropDownList("Month", new SelectList(new List<KeyValuePair<int, string>>()
+                    {
+                        new KeyValuePair<int, string>(1, "January"),
+                        new KeyValuePair<int, string>(2, "February"),
+                        new KeyValuePair<int, string>(3, "March"),
+                        new KeyValuePair<int, string>(4, "April"),
+                        new KeyValuePair<int, string>(5, "May"),
+                        new KeyValuePair<int, string>(6, "June"),
+                        new KeyValuePair<int, string>(7, "July"),
+                        new KeyValuePair<int, string>(8, "August"),
+                        new KeyValuePair<int, string>(9, "September"),
+                        new KeyValuePair<int, string>(10, "October"),
+                        new KeyValuePair<int, string>(11, "November"),
+                        new KeyValuePair<int, string>(12, "December"),
+                    }, "Key", "Value"), "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("PlannedHours", "Planned Hours", new { @class = "col-md-4 control-label" })
+                <div class="col-md-8">
+                    @Html.TextBox("PlannedHours", "", new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            @Html.Label("Rates", "Rates", new { @class = "col-md-4 control-label" })
+            <div class="col-md-8" id="Rates">
+                @foreach (var option in ViewBag.ResourceTypes)
+                {
+                    <div class="form-group">
+                        @Html.Label((string)option.Name, (string)option.Description, new { @class = "col-md-6 control-label" })
+                        <div class="col-md-6">
+                            @Html.TextBox((string)option.Name, "", new { @class = "form-control" })
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextArea("Description", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $('#formCostConfiguration').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    Name: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Name.' },
+                        }
+                    },
+                    Year: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Year.' },
+                            between: { min: 2015, max: 2020, message: 'Please enter a valid year.' },
+                        }
+                    },
+                    Month: {
+                        validators: {
+                            notEmpty: { message: 'Please choose Month.' },
+                        }
+                    },
+                    PlannedHours: {
+                        validators: {
+                            notEmpty: { message: 'Please enter Planned Hours.' },
+                            integer: { message: 'Please enter a valid number.' },
+                        }
+                    },
+                    Description: {
+                        validators: {
+                        }
+                    },
+                }
+            });
+        })
+
+        $('#formCostConfiguration').on('success.form.bv', function (e) {
+            e.preventDefault();
+
+            var rates = new Array();
+            $('#Rates input').each(function (index, element) {
+                rates.push({
+                    id: element.id,
+                    name: element.name,
+                    value: element.value,
+                });
+            });
+
+            $.post('/api/Rest/AddCostConfiguration', {
+                "Name": $('#Name').val(),
+                "Year": $('#Year').val(),
+                "Month": $('#Month').val(),
+                "PlannedHours": $('#PlannedHours').val(),
+                "Rates": JSON.stringify(rates),
+                "Description": $('#Description').val(),
+            }, function (data) {
+                $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } });
+                window.location = '/Costs/Edit/' + data.Id;
+            });
+        });
+    </script>
+}

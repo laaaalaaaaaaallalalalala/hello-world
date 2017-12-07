@@ -1,0 +1,52 @@
+﻿<div class="modal fade" id="modalTask" role="dialog" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formTask" class="form-horizontal">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h2>Task</h2>
+                </div>
+                <div class="modal-body">
+                    @Html.Hidden("Id")
+                    @Html.Hidden("ProjectId", (int)ViewBag.Id)
+                    <div class="form-group">
+                        @Html.Label("Name", "Name", new { @class = "col-md-3 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBox("Name", "", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("TaskStatus", "Status", new { @class = "col-md-3 control-label" })
+                        <div class="col-md-8">
+                            @Html.DropDownList("TaskStatus", null, "- Select -", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("DueDate", "Due Date", new { @class = "col-md-3 control-label" })
+                        <div class="col-md-4" style="z-index: 1030;">
+                            <div class="input-group date">
+                                @Html.TextBox("DueDate", "", new { @class = "form-control" })
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("AssignedTo", "AssignedTo", new { @class = "col-md-3 control-label" })
+                        <div class="col-md-8">
+                            @Html.DropDownList("AssignedTo", null, "- Select -", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("Description", "Description", new { @class = "col-md-3 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextArea("Description", "", new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

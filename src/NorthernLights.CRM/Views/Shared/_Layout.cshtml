@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Northern Lights CRM</title>
+    @*@Styles.Render("~/Content/css")*@
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap-datepicker.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrapValidator.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/select2.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/DataTables/css/dataTables.bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/DataTables/css/buttons.bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/DataTables/css/select.bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/DataTables/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/DataTables/css/buttons.bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap-fileinput/css/fileinput.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Site.css" />
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Northern Lights CRM", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li id="nav-accounts" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+                            Accounts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Index", "Index", "Accounts", new { area = "" }, new { })</li>
+                            <li>@Html.ActionLink("Create", "Create", "Accounts", new { area = "" }, new { })</li>
+                        </ul>
+                    </li>
+                    <li id="nav-projects" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+                            Projects <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Index", "Index", "Projects", new { area = "" }, new { })</li>
+                            <li>@Html.ActionLink("Create", "Create", "Projects", new { area = "" }, new { })</li>
+                        </ul>
+                    </li>
+                    <li id="nav-contacts" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+                            Contacts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Index", "Index", "Contacts", new { area = "" }, new { })</li>
+                            <li>@Html.ActionLink("Create", "Create", "Contacts", new { area = "" }, new { })</li>
+                        </ul>
+                    </li>
+                    <li id="nav-employees" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+                            Employees <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Index", "Index", "Employees", new { area = "" }, new { })</li>
+                            <li>@Html.ActionLink("Create", "Create", "Employees", new { area = "" }, new { })</li>
+                        </ul>
+                    </li>
+                    <li id="nav-costs" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+                            Costs <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Index", "Index", "Costs", new { area = "" }, new { })</li>
+                            <li>@Html.ActionLink("Create", "Create", "Costs", new { area = "" }, new { })</li>
+                        </ul>
+                    </li>
+                    <li id="nav-todoes">@Html.ActionLink("Tasks", "Index", "ToDoes", new { area = "" }, new { })</li>
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer class="text-right">
+            &copy; @DateTime.Now.Year <a href="http://www.nltd.com">Northern Lights</a>. Version @MvcApplication.Version
+        </footer>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script type="text/javascript" src="~/Scripts/jquery-number/jquery.number.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.dateFormat-1.0.js"></script>
+    <script type="text/javascript" src="~/Content/Scripts/bootstrap-hover-dropdown.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap-notify-3.1.3/bootstrap-notify.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrapValidator.js"></script>
+    <script type="text/javascript" src="~/Scripts/select2.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/buttons.bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/pdfmake/pdfmake.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/pdfmake/vfs_fonts.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/DataTables/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/fileinput.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/Site.js"></script>
+    <script>
+    $(document).on('ready', function () {
+        location.pathname.search("/Accounts") === 0 ? $('#nav-accounts').addClass('active') : $('#nav-accounts').removeClass('active');
+        location.pathname.search("/Contacts") === 0 ? $('#nav-contacts').addClass('active') : $('#nav-contacts').removeClass('active');
+        location.pathname.search("/Projects") === 0 ? $('#nav-projects').addClass('active') : $('#nav-projects').removeClass('active');
+        location.pathname.search("/Employees") === 0 ? $('#nav-employees').addClass('active') : $('#nav-employees').removeClass('active');
+        location.pathname.search("/Costs") === 0 ? $('#nav-costs').addClass('active') : $('#nav-costs').removeClass('active');
+        location.pathname.search("/ToDoes") === 0 ? $('#nav-todoes').addClass('active') : $('#nav-todoes').removeClass('active');
+
+        $('.date').datepicker('mm/dd/yyyy');
+
+        if ('@User.Identity.IsAuthenticated' === 'True')
+        {
+            if (!$.ajaxSettings || !$.ajaxSettings.headers || !$.ajaxSettings.headers["Authorization"]) {
+                var token = sessionStorage.getItem("Authorization");
+                if (!token) {
+                    $.ajax({
+                        "url": "/Token",
+                        "type": "POST",
+                        "data": "grant_type=client_credentials&client_id=@User.Identity.Name&client_secret=NorthernLights.CRM",
+                        "async": false,
+                    }).done(function (data) {
+                        token = data.token_type + " " + data.access_token;
+                        sessionStorage.setItem("Authorization", token);
+                    });
+                }
+
+                $.ajaxSetup({
+                    headers: { "Authorization": token },
+                });
+            }
+        }
+    });
+</script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,92 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr />
+
+<form id="formUser" class="form-horizontal">
+    @Html.Hidden("Id", (int)ViewBag.Id)
+    <div class="form-group">
+        @Html.Label("UserName", "User Name", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBox("UserName", "", new { @class = "form-control", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Email", "Email", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBox("Email", "", new { @class = "form-control", @readonly = "readonly" })
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-2 control-label">
+            Roles
+        </label>
+        <div class="col-md-10">
+            @foreach (var item in (SelectList)ViewBag.Roles)
+            {
+                <div class="checkbox">
+                    <label>
+                        @Html.CheckBox("Role", false, new { value = item.Value })
+                        @item.Text
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function (e) {
+            $.ajax('/Admin/Users/GetUser/' + $('#formUser #Id').val()).done(function (data) {
+                $('#formUser #UserName').val(data.UserName)
+                $('#formUser #Email').val(data.Email)
+
+                $.each(data.Roles, function (index, element) {
+                    $('#formUser #Role[value="' + element.Name + '"]').prop('checked', true)
+                })
+            })
+
+            $('#formUser').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    UserName: {
+                        validators: {
+                            notEmpty: { message: 'Please provide a user name.' },
+                        }
+                    },
+                    Email: {
+                        validators: {
+                            notEmpty: { message: 'Please provide an email address.' },
+                            emailAddress: { message: 'Please provide a valid email address.' },
+                        }
+                    },
+                    Role: {
+                        validators: {
+                            notEmpty: { message: 'Please choose one or more roles.' },
+                        }
+                    },
+                }
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+
+                $.ajax({ url: '/Admin/Users/Edit', type: 'PUT', data: $('#formUser').serialize() }).done(function (data) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                    window.location = '/Admin/Users'
+                })
+            })
+        })
+    </script>
+}

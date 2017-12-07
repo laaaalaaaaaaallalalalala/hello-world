@@ -1,0 +1,109 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr />
+
+<form id="formUser" class="form-horizontal">
+    <div class="form-group">
+        @Html.Label("UserName", "User Name", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBox("UserName", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Email", "Email", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBox("Email", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("Password", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.Password("Password", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.Label("ConfirmPassword", "Confirm Password", new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.Password("ConfirmPassword", "", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-2 control-label">
+            Roles
+        </label>
+        <div class="col-md-10">
+            @foreach (var item in (SelectList)ViewBag.Roles)
+            {
+                <div class="checkbox">
+                    <label>
+                        @Html.CheckBox("Role", false, new { value = item.Value })
+                        @item.Text
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function (e) {
+            $('#formUser').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    UserName: {
+                        validators: {
+                            notEmpty: { message: 'Please provide a user name.' },
+                        }
+                    },
+                    Email: {
+                        validators: {
+                            notEmpty: { message: 'Please provide an email address.' },
+                            emailAddress: { message: 'Please provide a valid email address.' },
+                        }
+                    },
+                    Password: {
+                        validators: {
+                            identical: { field: 'ConfirmPassword', message: 'The password and its confirm are not the same.' },
+                        }
+                    },
+                    ConfirmPassword: {
+                        validators: {
+                            identical: { field: 'Password', message: 'The password and its confirm are not the same.' },
+                        }
+                    },
+                    Role: {
+                        validators: {
+                            notEmpty: { message: 'Please choose one or more roles.' },
+                        }
+                    },
+                }
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+
+                $.ajax({ url: '/Admin/Users/Create', type: 'POST', data: $('#formUser').serialize() }).done(function (data) {
+                    if (data.error === true) {
+                        $.notify({ message: data.message }, { type: 'danger', placement: { from: 'top', align: 'center' } })
+                    }
+                    else {
+                        $.notify({ message: data.message }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                        window.location = '/Admin/Users'
+                    }
+                })
+            })
+        })
+    </script>
+}

@@ -1,0 +1,514 @@
+﻿@{
+    ViewBag.Title = "Project";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabStakeholders">Stakeholders</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabTasks">Tasks</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabActivities">Activities</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formProject" class="form-horizontal">
+            @Html.Hidden("Id", (int)ViewBag.Id)
+            <div class="form-group">
+                @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.TextBox("Name", "", new { @class = "form-control" })
+                </div>
+                @Html.Label("Type", "Type", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.DropDownList("Type", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("BeginDate", "Start Date", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("BeginDate", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+                @Html.Label("AccountId", "Account", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.DropDownList("AccountId", new List<SelectListItem>(), new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("EndDate", "End Date", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("EndDate", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+                @Html.Label("Industry", "Industry", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.DropDownList("Industry", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Status", "Status", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4">
+                    @Html.DropDownList("Status", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Description", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Comment", "Comment", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Comment", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabStakeholders" class="tab-pane fade" role="tabpanel">
+        <div>
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modalStakeholder">
+                <span class="glyphicon glyphicon-plus"></span> Add
+            </button>
+        </div>
+        <table id="tableStakeholders" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+        @Html.Partial("_StakeholderModal")
+    </div>
+    <div id="tabTasks" class="tab-pane fade" role="tabpanel">
+        <div>
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modalTask">
+                <span class="glyphicon glyphicon-plus"></span> Add
+            </button>
+        </div>
+        <table id="tableTasks" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+        @Html.Partial("_TaskModal")
+    </div>
+    <div id="tabActivities" class="tab-pane fade" role="tabpanel">
+        <table id="tableActivities" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $("#formStakeholder #Id").val('')
+
+            $.ajax('/api/Rest/GetAccounts').done(function (accounts) {
+                accounts.splice(0, 0, { Id: "", Name: "" })
+                var select2 = $('#formProject #AccountId').select2({
+                    placeholder: "- Select -",
+                    allowClear: true,
+                    data: $.map(accounts, function (item, index) {
+                        item.id = item.Id
+                        item.text = item.Name
+                        return item
+                    }),
+                    templateResult: function (item) {
+                        return '<div>' + '<img src="' + (item.Logo !== null ? item.Logo : '/Images/no-image.png') + '" height="64px" width="64px"/>&nbsp;' + item.Name + '</div>';
+                    },
+                    escapeMarkup: function (markup) { return markup },
+                })
+
+                $.ajax('/api/Rest/GetProject/' + $('#formProject #Id').val()).done(function (data) {
+                    $('#formProject #Name').val(data.Name)
+                    $('#formProject #Type').val(data.Type)
+                    if (data.BeginDate !== null) {
+                        $('#formProject #BeginDate').datepicker('setDate', new Date(data.BeginDate))
+                    }
+                    if (data.EndDate !== null) {
+                        $('#formProject #EndDate').datepicker('setDate', new Date(data.EndDate))
+                    }
+                    $('#formProject #Status').val(data.Status)
+                    $('#formProject #Industry').val(data.Industry)
+                    $('#formProject #Description').val(data.Description)
+                    if (data.AccountId !== null) {
+                        select2.val(data.AccountId).trigger('change')
+                    }
+                })
+            })
+
+            $('#formProject').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    Name: { validators: { notEmpty: { message: 'Please enter Name.' } } },
+                    Type: { validators: {} },
+                    BeginDate: { validators: {} },
+                    AccountId: { validators: {} },
+                    EndDate: { validators: {} },
+                    Industry: { validators: {} },
+                    Status: { validators: { notEmpty: { message: 'Please choose Status.' } } },
+                    Description: { validators: {} },
+                    Comment: { validators: { notEmpty: { message: 'Please enter Comment.' } } },
+                },
+            }).on('success.form.bv', function (e) {
+                e.preventDefault();
+
+                $.ajax({ url: '/Projects/UpdateProject', type: 'PUT', data: $('#formProject').serialize() }).done(function (data) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                })
+            })
+
+            $('#formStakeholder').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    ContactId: { validators: { notEmpty: { message: 'Please choose Contact.' } } },
+                    Role: { validators: {} },
+                    BeginDate: { validators: {} },
+                    EndDate: { validators: {} },
+                    Comment: { validators: {} },
+                },
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+
+                var form = $('#formStakeholder').serialize() + '&ContactId=' + $('#formStakeholder #ContactId').val()
+                if ($("#formStakeholder #Id").val().length > 0) {
+                    $.ajax({ url: '/api/Rest/UpdateProjectStakeholder', type: 'PUT', data: form }).done(function (data) {
+                        $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                        $('#modalStakeholder').modal('hide')
+                        getStakeholders()
+                    })
+                }
+                else {
+                    $.ajax({ url: '/api/Rest/AddProjectStakeholder', type: 'POST', data: form }).done(function (data) {
+                        $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                        $('#modalStakeholder').modal('hide')
+                        getStakeholders()
+                    })
+                }
+            })
+
+            $('#formTask').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    Name: { validators: { notEmpty: { message: 'Please enter Name.' } } },
+                    TaskStatus: { validators: { notEmpty: { message: 'Please choose Status.' } } },
+                    DueDate: { validators: {} },
+                    AssignedTo: { validators: {} },
+                    Description: { validators: { notEmpty: { message: 'Please enter Description.' } } },
+                },
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+
+                $.ajax({ url: '/Projects/AddTask', type: 'POST', data: $('#formTask').serialize() }).done(function (e) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                    $('#modalTask').modal('hide')
+                    getTasks()
+                })
+            })
+        }) // $(document)
+
+        $('a[href="#tabStakeholders"]').on('shown.bs.tab', function (e) {
+            getStakeholders()
+        })
+
+        function getStakeholders() {
+            $.ajax('/Projects/GetStakeholders/' + $('#formStakeholder #ProjectId').val()).done(function (data) {
+                var table = $('#tableStakeholders').DataTable({
+                    "destroy": true,
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "data": data,
+                    "rowId": 'Id',
+                    "order": [[0, 'asc']],
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "data": "Contact.Name",
+                    },
+                    {
+                        "title": "Role",
+                        "data": "Role",
+                    },
+                    {
+                        "title": "Join Date",
+                        "data": "BeginDate",
+                        "render": function (data, type, row) {
+                            return data === null ? '' : $.format.date(new Date(parseInt(data.substr(6))), "MM/dd/yyyy")
+                        }
+                    },
+                    {
+                        "title": "Leave Date",
+                        "data": "EndDate",
+                        "render": function (data, type, row) {
+                            return data === null ? '' : $.format.date(new Date(parseInt(data.substr(6))), "MM/dd/yyyy")
+                        }
+                    },
+                    {
+                        "orderable": false,
+                        "className": 'text-nowrap',
+                        "defaultContent": '<a class="edit" href="#"><span class="glyphicon glyphicon-pencil"></span></a>&nbsp;' +
+                                          '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                    }]
+                })
+
+                $('#tableStakeholders tfoot th').each(function () {
+                    var title = $('#tableStakeholders thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        }
+
+        $('#modalStakeholder').on('hidden.bs.modal', function (e) {
+            $('#formStakeholder #Id').val('')
+            $('#formStakeholder').data('bootstrapValidator').resetForm(true)
+        }).on('shown.bs.modal', function (e) {
+            $.ajax('/api/Rest/GetContacts').done(function (contacts) {
+                var select2 = $('#modalStakeholder #ContactId').select2({
+                    placeholder: "- Select -",
+                    width: "100%",
+                    data: $.map(contacts, function (element, index) {
+                        element.id = element.Id
+                        element.text = element.Name
+                        return element
+                    }),
+                    templateResult: function (element) {
+                        return "<div>" + element.Name + "</div><div>" + element.Email + "</div>"
+                    },
+                    escapeMarkup: function (markup) { return markup },
+                })
+
+                if ($('#formStakeholder #Id').val().length > 0) {
+                    $.ajax('/api/Rest/GetProjectStakeholder/' + $('#formStakeholder #Id').val()).done(function (data) {
+                        $('#formStakeholder #ContactId').select2().val(data.ContactId).trigger('change')
+                        $('#formStakeholder #ContactId').prop('disabled', true)
+                        $('#formStakeholder #Role').val(data.Role)
+                        if (data.BeginDate !== null) {
+                            $('#formStakeholder #BeginDate').datepicker('setDate', new Date(data.BeginDate))
+                        }
+                        if (data.EndDate !== null) {
+                            $('#formStakeholder #EndDate').datepicker('setDate', new Date(data.EndDate))
+                        }
+                        $('#formStakeholder #Comment').val(data.Comment)
+                    })
+                } else {
+                    $('#formStakeholder #ContactId').prop('disabled', false)
+                    $('#formStakeholder #ContactId').select2().val(null).trigger('change')
+                }
+            })
+        })
+
+        $('#tableStakeholders').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableStakeholders').DataTable()
+                $.ajax({ url: '/api/Rest/DeleteProjectStakeholder/' + table.row($(this).parents('tr')).data().Id, type: 'DELETE' }).done(function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                    getStakeholders()
+                })
+            }
+        }).on('click', 'a.edit', function () {
+            var table = $('#tableStakeholders').DataTable()
+            $('#formStakeholder #Id').val(table.row($(this).parents('tr')).data().Id)
+            $('#modalStakeholder').modal()
+        })
+
+        $('a[href="#tabTasks"]').on('shown.bs.tab', function (e) {
+            getTasks()
+        })
+
+        function getTasks() {
+            $.ajax('/Projects/GetTasks/' + $('#formTask #ProjectId').val()).done(function (data) {
+                var table = $('#tableTasks').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/ToDoes/Edit/' + row.Id + '">' + row.Name + '</a>';
+                        }
+                    },
+                    {
+                        "title": "Status",
+                        "data": "Status",
+                    },
+                    {
+                        "title": "Assigned To",
+                        "data": "AssignedTo",
+                    },
+                    {
+                        "title": "Due Date",
+                        "data": "DueDate",
+                        "render": function (data, type, row) {
+                            return data === null ? '' : $.format.date(new Date(parseInt(data.substr(6))), "MM/dd/yyyy")
+                        }
+                    },
+                    {
+                        "defaultContent": '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                        "orderable": false,
+                    }],
+                })
+
+                $('#tableTasks tfoot th').each(function () {
+                    var title = $('#tableTasks thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        }
+
+        $('#modalTask').on('hidden.bs.modal', function (e) {
+            $('#formTask #Id').val('')
+            $('#formTask').data('bootstrapValidator').resetForm(true)
+        })
+
+        $('#tableTasks').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableTasks').DataTable()
+                $.ajax({ url: '/api/Rest/DeleteToDo/' + table.row($(this).parents('tr')).data().Id, type: 'DELETE' }).done(function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                    getTasks()
+                })
+            }
+        })
+
+        $('a[href="#tabActivities"]').on('shown.bs.tab', function (e) {
+            $.ajax('/api/Rest/GetProject/' + $('#formProject #Id').val()).done(function (data) {
+                var table = $('#tableActivities').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": JSON.parse(data.Activities),
+                    "order": [[1, "desc"]],
+                    "rowId": "Guid",
+                    "columns": [
+                    {
+                        "class": "details-control",
+                        "orderable": false,
+                        "defaultContent": ""
+                    },
+                    {
+                        "title": "Date",
+                        "data": "DateCreated",
+                        "render": function (data, type, row) {
+                            return $.format.date(data, "MM/dd/yyyy HH:mm:ss");
+                        }
+                    },
+                    {
+                        "title": "User",
+                        "data": "UserName",
+                    },
+                    {
+                        "title": "Comment",
+                        "data": "Comment",
+                    }],
+                })
+
+                $('#tableActivities tfoot th').each(function () {
+                    var title = $('#tableActivities thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+
+                $('#tableActivities tbody').on('click', 'tr td.details-control', function () {
+                    var tr = $(this).parents('tr')
+                    var row = table.row(tr)
+
+                    if (row.child.isShown()) {
+                        tr.removeClass('shown')
+                        row.child.hide()
+                    }
+                    else {
+                        var html = '<table class="table table-striped" width="100%"><tr><th>Key</th><th>Old Value</th><th>New Value</th></tr>'
+                        $.each(row.data().ChangedValues, function (index, element) {
+                            html += '<tr><td>' + element.Key + '</td><td>' + element.OldValue + '</td><td>' + element.NewValue + '</td></tr>'
+                        })
+                        html += '</table>'
+                        tr.addClass('shown')
+                        row.child(html).show()
+                    }
+                })
+            })
+        })
+    </script>
+}

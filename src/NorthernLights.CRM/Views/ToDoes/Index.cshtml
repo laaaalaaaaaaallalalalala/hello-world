@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Tasks";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<table id="tableTasks" class="table table-striped" width="100%">
+    <thead></thead>
+    <tfoot class="filter">
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody></tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            getTasks()
+        })
+
+        function getTasks() {
+            $.ajax('/api/Rest/GetToDoes').done(function (data) {
+                var table = $('#tableTasks').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": data,
+                    "order": [[0, 'asc']],
+                    "rowId": "Id",
+                    "columns": [
+                    {
+                        "title": "Name",
+                        "render": function (data, type, row) {
+                            return '<a href="/ToDoes/Edit/' + row.Id + '">' + row.Name + '</a>'
+                        }
+                    },
+                    {
+                        "title": "Source",
+                        "render": function (data, type, row) {
+                            if (row.ObjectType === 'Project') {
+                                return '<a href="/Projects/Edit/' + row.ObjectId + '">' + row.ObjectType + '</a>'
+                            }
+                            else {
+                                return row.ObjectType
+                            }
+                        }
+                    },
+                    {
+                        "title": "Status",
+                        "data": "Status",
+                    },
+                    {
+                        "title": "Due Date",
+                        "data": "DueDate",
+                        "render": function (data, type, row) {
+                            return $.format.date(data, "MM/dd/yyyy")
+                        }
+                    },
+                    {
+                        "defaultContent": '<a class="del" href="#"><span class="glyphicon glyphicon-remove"></span></a>',
+                        "orderable": false
+                    }],
+                })
+
+                $('#tableTasks tfoot th').each(function () {
+                    var title = $('#tableTasks thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        }
+
+        $('#tableTasks').on('click', 'a.del', function () {
+            if (confirm('Are you sure?') === true) {
+                var table = $('#tableTasks').DataTable()
+                $.ajax({ url: '/api/Rest/DeleteToDo/' + table.row($(this).parents('tr')).data().Id, type: 'DELETE' }).done(function () {
+                    $.notify({ message: 'Data Deleted.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                    getTasks()
+                })
+            }
+        })
+    </script>
+}

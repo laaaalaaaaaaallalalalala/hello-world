@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = "Task";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<ul role="tablist" class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a role="tab" data-toggle="tab" href="#tabDetails">Basic Information</a>
+    </li>
+    <li role="presentation">
+        <a role="tab" data-toggle="tab" href="#tabActivities">Activities</a>
+    </li>
+</ul>
+
+<p></p>
+
+<div class="tab-content">
+    <div id="tabDetails" class="tab-pane fade in active" role="tabpanel">
+        <form id="formTask" class="form-horizontal">
+            @Html.Hidden("Id", (int)ViewBag.Id)
+            <div class="form-group" style="padding-top: 7px;">
+                @Html.Label("ObjectId", "Object Type", new { @class = "col-md-2 control-label", id = "ObjectIdLabel", style = "padding-top: 0px;" })
+                <div class="col-md-10">
+                    <a id="ObjectId"></a>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Name", "Name", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextBox("Name", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("TaskStatus", "Status", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownList("TaskStatus", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("DueDate", "Due Date", new { @class = "col-md-2 control-label" })
+                <div class="col-md-4" style="z-index: 1030;">
+                    <div class="input-group date">
+                        @Html.TextBox("DueDate", "", new { @class = "form-control" })
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("AssignedTo", "AssignedTo", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownList("AssignedTo", null, "- Select -", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Description", "Description", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Description", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Comment", "Comment", new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.TextArea("Comment", "", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12 text-right">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="tabActivities" class="tab-pane fade" role="tabpanel">
+        <table id="tableActivities" class="table table-striped" width="100%">
+            <thead></thead>
+            <tfoot class="filter">
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on('ready', function () {
+            $.ajax('/api/Rest/GetToDo/' + $('#formTask #Id').val()).done(function (data) {
+                $('#formTask #Name').val(data.Name)
+                $('#formTask #TaskStatus').val(data.Status)
+                if (!(!data.DueDate)) {
+                    $('#formTask #DueDate').datepicker('setDate', new Date(data.DueDate))
+                }
+                $('#formTask #AssignedTo').val(data.AssignedTo)
+                $('#formTask #Description').val(data.Description)
+
+                if (data.ObjectId !== null) {
+                    if (data.ObjectType === 'Project') {
+                        $('#ObjectIdLabel').text(data.ObjectType)
+                        $.ajax('/api/Rest/GetProject/' + data.ObjectId).done(function (project) {
+                            $('#ObjectId').attr('href', '/Projects/Edit/' + project.Id).text(project.Name)
+                        })
+                    }
+                }
+            })
+
+            $('#formTask').bootstrapValidator({
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh',
+                },
+                fields: {
+                    Name: { validators: { notEmpty: { message: 'Please enter Name.' } } },
+                    TaskStatus: { validators: { notEmpty: { message: 'Please choose Status.' } } },
+                    DueDate: { validators: {} },
+                    AssignedTo: { validators: {} },
+                    Description: { validators: { notEmpty: { message: 'Please enter Description.' } } },
+                    Comment: { validators: { notEmpty: { message: 'Please enter Comment.' } } },
+                },
+            }).on('success.form.bv', function (e) {
+                e.preventDefault()
+
+                $.ajax({ url: '/ToDoes/UpdateTodo', type: 'PUT', data: $('#formTask').serialize() }).done(function (e) {
+                    $.notify({ message: 'Data Saved.' }, { type: 'success', placement: { from: 'top', align: 'center' } })
+                })
+            })
+        })
+
+        $('a[href="#tabActivities"]').on('shown.bs.tab', function (e) {
+            $.ajax('/api/Rest/GetToDo/' + $('#formTask #Id').val()).done(function (data) {
+                var table = $('#tableActivities').DataTable({
+                    "dom": "<'row'<'col-md-12'f>><'row'<'col-md-6'i><'col-md-6'p>><'row'<'col-md-12'tr>><'row'<'col-md-6'l><'col-md-6'p>>",
+                    "destroy": true,
+                    "data": JSON.parse(data.Activities),
+                    "order": [[1, "desc"]],
+                    "rowId": "Guid",
+                    "columns": [{
+                        "defaultContent": "",
+                        "class": "details-control",
+                        "orderable": false,
+                    },
+                    {
+                        "title": "Date",
+                        "data": "DateCreated",
+                        "render": function (data, type, row) {
+                            return $.format.date(data, "MM/dd/yyyy HH:mm:ss");
+                        }
+                    },
+                    {
+                        "title": "User",
+                        "data": "UserName",
+                    },
+                    {
+                        "title": "Comment",
+                        "data": "Comment",
+                    }],
+                })
+
+                $('#tableActivities tfoot th').each(function () {
+                    var title = $('#tableActivities thead th').eq($(this).index()).text()
+                    if (title.length > 0) {
+                        $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '">')
+                    }
+                })
+
+                table.columns().eq(0).each(function (colIdx) {
+                    $('input', table.column(colIdx).footer()).on('keyup change', function () {
+                        table.column(colIdx).search(this.value).draw()
+                    })
+                })
+            })
+        })
+
+        $('#tableActivities tbody').on('click', 'tr td.details-control', function () {
+            var tr = $(this).parents('tr')
+            var row = $('#tableActivities').DataTable().row(tr)
+
+            if (row.child.isShown()) {
+                tr.removeClass('shown')
+                row.child.hide()
+            }
+            else {
+                var html = '<table class="table table-striped" width="100%"><tr><th>Key</th><th>Old Value</th><th>New Value</th></tr>'
+                $.each(row.data().ChangedValues, function (index, element) {
+                    html += '<tr><td>' + element.Key + '</td><td>' + element.OldValue + '</td><td>' + element.NewValue + '</td></tr>'
+                })
+                html += '</table>'
+                tr.addClass('shown')
+                row.child(html).show()
+            }
+        })
+    </script>
+}
